@@ -30,6 +30,7 @@ export default {
       },
       expandedText: false,
       timeout: undefined,
+      tab: 'option-1',
     };
   },
   computed: {
@@ -242,85 +243,102 @@ export default {
       content-class="export-submissions-dlg"
     >
       <v-card :class="{ 'dir-rtl': isRTL }">
-        <v-card-title class="text-h5 pb-0" :lang="lang">{{
-          $t('trans.printOptions.downloadOptions')
+        <v-card-title class="text-h5 pb-0 mt-2" :lang="lang">{{
+          $t('trans.printOptions.printOptions')
         }}</v-card-title>
         <v-card-text>
-          <hr />
-          <p :lang="lang">
-            <strong>1. </strong>
-            <a
-              href="https://github.com/bcgov/common-hosted-form-service/wiki/Printing-from-a-browser"
-              target="blank"
-              :hreflang="lang"
-            >
-              {{ $t('trans.printOptions.print') }}
-            </a>
-            {{ $t('trans.printOptions.pageFromBrowser') }}
-          </p>
-          <v-switch v-model="expandedText" color="primary">
-            <template #label>
-              <span style="font-size: 16px">Expand text fields</span>
-            </template>
-          </v-switch>
-          <v-btn class="mb-5 mr-5" color="primary" @click="printBrowser">
-            <span :lang="lang">{{
-              $t('trans.printOptions.browserPrint')
-            }}</span>
-          </v-btn>
-
-          <p :lang="lang">
-            <strong>2.</strong> {{ $t('trans.printOptions.uploadA') }}
-            <a
-              href="https://github.com/bcgov/common-hosted-form-service/wiki/CDOGS-Template-Upload"
-              target="blank"
-              :hreflang="lang"
-            >
-              {{ $t('trans.printOptions.cDogsTemplate') }}
-            </a>
-            {{ $t('trans.printOptions.uploadB') }}
-          </p>
-          <v-file-input
-            v-model="templateForm.files"
-            :class="{ label: isRTL }"
-            :style="isRTL ? { gap: '10px' } : null"
-            counter
-            :clearable="true"
-            :label="$t('trans.printOptions.uploadTemplateFile')"
-            persistent-hint
-            prepend-icon="attachment"
-            required
-            mandatory
-            show-size
-            :lang="lang"
-          />
-          <v-card-actions>
-            <v-tooltip location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  id="file-input-submit"
-                  variant="flat"
-                  class="btn-file-input-submit px-4"
-                  :disabled="!templateForm.files"
-                  color="primary"
-                  :loading="loading"
-                  v-bind="props"
-                  @click="generate"
+          <v-tabs v-model="tab" class="mb-5">
+            <v-tab value="option-1">Browser Print</v-tab>
+            <v-tab value="option-2">Template Print</v-tab>
+          </v-tabs>
+          <v-window v-model="tab">
+            <v-window-item value="option-1">
+              <p :lang="lang">
+                <a
+                  href="https://github.com/bcgov/common-hosted-form-service/wiki/Printing-from-a-browser"
+                  target="blank"
+                  :hreflang="lang"
                 >
-                  <v-icon
-                    :start="$vuetify.display.smAndUp"
-                    icon="mdi:mdi-content-save"
-                  />
+                  {{ $t('trans.printOptions.print') }}
+                </a>
+                {{ $t('trans.printOptions.pageFromBrowser') }}
+              </p>
+              <v-switch v-model="expandedText" color="primary">
+                <template #label>
+                  <span style="font-size: 16px">Expand text fields</span>
+                </template>
+              </v-switch>
+              <v-btn class="mb-5 mr-5" color="primary" @click="printBrowser">
+                <span :lang="lang">{{
+                  $t('trans.printOptions.browserPrint')
+                }}</span>
+              </v-btn>
+              <!-- More Info Link -->
+              <a
+                href="https://github.com/bcgov/common-hosted-form-service/wiki/Printing-from-a-browser"
+                target="_blank"
+                class="more-info-link"
+                :lang="lang"
+              >
+                <v-icon size="small">mdi-help-circle</v-icon>
+                More Info
+              </a>
+            </v-window-item>
+            <v-window-item value="option-2">
+              <p :lang="lang">
+                {{ $t('trans.printOptions.uploadA') }}
+                <a
+                  href="https://github.com/bcgov/common-hosted-form-service/wiki/CDOGS-Template-Upload"
+                  target="blank"
+                  :hreflang="lang"
+                >
+                  {{ $t('trans.printOptions.cDogsTemplate') }}
+                </a>
+                {{ $t('trans.printOptions.uploadB') }}
+              </p>
+              <v-file-input
+                v-model="templateForm.files"
+                :class="{ label: isRTL }"
+                :style="isRTL ? { gap: '10px' } : null"
+                counter
+                :clearable="true"
+                :label="$t('trans.printOptions.uploadTemplateFile')"
+                persistent-hint
+                prepend-icon="attachment"
+                required
+                mandatory
+                show-size
+                :lang="lang"
+              />
+              <v-card-actions>
+                <v-tooltip location="top">
+                  <template #activator="{ props }">
+                    <v-btn
+                      id="file-input-submit"
+                      variant="flat"
+                      class="btn-file-input-submit px-4"
+                      :disabled="!templateForm.files"
+                      color="primary"
+                      :loading="loading"
+                      v-bind="props"
+                      @click="generate"
+                    >
+                      <v-icon
+                        :start="$vuetify.display.smAndUp"
+                        icon="mdi:mdi-content-save"
+                      />
+                      <span :lang="lang">{{
+                        $t('trans.printOptions.templatePrint')
+                      }}</span>
+                    </v-btn>
+                  </template>
                   <span :lang="lang">{{
-                    $t('trans.printOptions.templatePrint')
+                    $t('trans.printOptions.submitButtonTxt')
                   }}</span>
-                </v-btn>
-              </template>
-              <span :lang="lang">{{
-                $t('trans.printOptions.submitButtonTxt')
-              }}</span>
-            </v-tooltip>
-          </v-card-actions>
+                </v-tooltip>
+              </v-card-actions>
+            </v-window-item>
+          </v-window>
         </v-card-text>
       </v-card>
     </v-dialog>

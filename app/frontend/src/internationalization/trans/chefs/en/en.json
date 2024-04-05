@@ -671,7 +671,8 @@
     "docGrnSucess": "Document generated successfully",
     "failedDocGenErrMsg": "Failed to generate Document",
     "failedDocGenConsErrMsg": "Error submitting template: {error}",
-    "cDogsTemplate": "CDOGS template"
+    "cDogsTemplate": "CDOGS template",
+    "printOptions": "Print Options"
   },
   "proactiveHelpDialog": {
     "componentInfoLink": "Component Information Link",
