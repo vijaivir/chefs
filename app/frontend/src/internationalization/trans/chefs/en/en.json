@@ -672,7 +672,13 @@
     "failedDocGenErrMsg": "Failed to generate Document",
     "failedDocGenConsErrMsg": "Error submitting template: {error}",
     "cDogsTemplate": "CDOGS template",
-    "printOptions": "Print Options"
+    "printOptions": "Print Options",
+    "expandtextFields": "Expand text fields",
+    "moreInfo": "More Info",
+    "uploadCDOGSTemplate" : "Upload CDOGS template",
+    "defaultCDOGSTemplate": "Use default CDOGS template",
+    "fileName": "File Name",
+    "uploadDate": "Upload Date"
   },
   "proactiveHelpDialog": {
     "componentInfoLink": "Component Information Link",

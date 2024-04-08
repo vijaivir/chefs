@@ -30,7 +30,8 @@ export default {
       },
       expandedText: false,
       timeout: undefined,
-      tab: 'option-1',
+      tab: 'tab-1',
+      selectedOption: null,
     };
   },
   computed: {
@@ -248,89 +249,135 @@ export default {
         }}</v-card-title>
         <v-card-text>
           <v-tabs v-model="tab" class="mb-5">
-            <v-tab value="option-1">Browser Print</v-tab>
-            <v-tab value="option-2">Template Print</v-tab>
+            <v-tab value="tab-1">{{
+              $t('trans.printOptions.browserPrint')
+            }}</v-tab>
+            <v-tab value="tab-2">{{
+              $t('trans.printOptions.templatePrint')
+            }}</v-tab>
           </v-tabs>
           <v-window v-model="tab">
-            <v-window-item value="option-1">
-              <p :lang="lang">
-                <a
-                  href="https://github.com/bcgov/common-hosted-form-service/wiki/Printing-from-a-browser"
-                  target="blank"
-                  :hreflang="lang"
-                >
-                  {{ $t('trans.printOptions.print') }}
-                </a>
-                {{ $t('trans.printOptions.pageFromBrowser') }}
-              </p>
-              <v-switch v-model="expandedText" color="primary">
+            <v-window-item value="tab-1">
+              <v-checkbox v-model="expandedText" color="primary">
                 <template #label>
-                  <span style="font-size: 16px">Expand text fields</span>
+                  <span>{{ $t('trans.printOptions.expandtextFields') }}</span>
                 </template>
-              </v-switch>
-              <v-btn class="mb-5 mr-5" color="primary" @click="printBrowser">
-                <span :lang="lang">{{
-                  $t('trans.printOptions.browserPrint')
-                }}</span>
-              </v-btn>
-              <!-- More Info Link -->
-              <a
-                href="https://github.com/bcgov/common-hosted-form-service/wiki/Printing-from-a-browser"
-                target="_blank"
-                class="more-info-link"
-                :lang="lang"
-              >
-                <v-icon size="small">mdi-help-circle</v-icon>
-                More Info
-              </a>
-            </v-window-item>
-            <v-window-item value="option-2">
-              <p :lang="lang">
-                {{ $t('trans.printOptions.uploadA') }}
-                <a
-                  href="https://github.com/bcgov/common-hosted-form-service/wiki/CDOGS-Template-Upload"
-                  target="blank"
-                  :hreflang="lang"
+              </v-checkbox>
+              <div class="flex-container">
+                <v-btn
+                  class="mb-5"
+                  :class="isRTL ? 'ml-5' : 'mr-5'"
+                  color="primary"
+                  @click="printBrowser"
                 >
-                  {{ $t('trans.printOptions.cDogsTemplate') }}
+                  <span :lang="lang">{{
+                    $t('trans.printOptions.browserPrint')
+                  }}</span>
+                </v-btn>
+                <!-- More Info Link -->
+                <a
+                  href="https://developer.gov.bc.ca/docs/default/component/chefs-techdocs/Capabilities/Functionalities/Printing-from-a-browser/"
+                  target="_blank"
+                  class="more-info-link"
+                  :lang="lang"
+                >
+                  <v-icon size="small" class="mx-1">mdi-help-circle</v-icon>
+                  {{ $t('trans.printOptions.moreInfo') }}
                 </a>
-                {{ $t('trans.printOptions.uploadB') }}
-              </p>
-              <v-file-input
-                v-model="templateForm.files"
-                :class="{ label: isRTL }"
-                :style="isRTL ? { gap: '10px' } : null"
-                counter
-                :clearable="true"
-                :label="$t('trans.printOptions.uploadTemplateFile')"
-                persistent-hint
-                prepend-icon="attachment"
-                required
-                mandatory
-                show-size
-                :lang="lang"
-              />
+              </div>
+            </v-window-item>
+            <v-window-item value="tab-2">
+              <v-radio-group v-model="selectedOption">
+                <!-- Radio 1 -->
+                <v-radio
+                  :label="$t('trans.printOptions.defaultCDOGSTemplate')"
+                  value="default"
+                ></v-radio>
+                <v-table
+                  :disabled="selectedOption !== 'default'"
+                  style="
+                    color: gray;
+                    border: 1px solid lightgray;
+                    border-radius: 8px;
+                  "
+                  class="mb-5 mt-3 mx-10"
+                >
+                  <thead>
+                    <tr>
+                      <th class="text-left">
+                        {{ $t('trans.printOptions.fileName') }}
+                      </th>
+                      <th class="text-left">
+                        {{ $t('trans.printOptions.uploadDate') }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>example.pdf</td>
+                      <td>2024-04-08</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+
+                <!-- Radio 2 -->
+                <v-radio
+                  :label="$t('trans.printOptions.uploadCDOGSTemplate')"
+                  value="upload"
+                ></v-radio>
+                <v-file-input
+                  v-model="templateForm.files"
+                  :class="{ label: isRTL }"
+                  :style="isRTL ? { gap: '10px' } : null"
+                  counter
+                  :clearable="true"
+                  :label="$t('trans.printOptions.uploadTemplateFile')"
+                  persistent-hint
+                  prepend-icon="attachment"
+                  required
+                  mandatory
+                  show-size
+                  :lang="lang"
+                  :disabled="selectedOption !== 'upload'"
+                />
+              </v-radio-group>
+
               <v-card-actions>
                 <v-tooltip location="top">
                   <template #activator="{ props }">
-                    <v-btn
-                      id="file-input-submit"
-                      variant="flat"
-                      class="btn-file-input-submit px-4"
-                      :disabled="!templateForm.files"
-                      color="primary"
-                      :loading="loading"
-                      v-bind="props"
-                      @click="generate"
-                    >
-                      <v-icon
-                        :start="$vuetify.display.smAndUp"
-                        icon="mdi:mdi-content-save"
-                      />
-                      <span :lang="lang">{{
-                        $t('trans.printOptions.templatePrint')
-                      }}</span>
-                    </v-btn>
+                    <div class="flex-container">
+                      <v-btn
+                        id="file-input-submit"
+                        variant="flat"
+                        class="btn-file-input-submit px-4"
+                        :class="isRTL ? 'ml-5' : 'mr-5'"
+                        :disabled="!templateForm.files"
+                        color="primary"
+                        :loading="loading"
+                        v-bind="props"
+                        @click="generate"
+                      >
+                        <v-icon
+                          :start="$vuetify.display.smAndUp"
+                          icon="mdi:mdi-content-save"
+                        />
+                        <span :lang="lang">{{
+                          $t('trans.printOptions.templatePrint')
+                        }}</span>
+                      </v-btn>
+
+                      <a
+                        href="https://developer.gov.bc.ca/docs/default/component/chefs-techdocs/Capabilities/Functionalities/CDOGS-Template-Upload/"
+                        target="_blank"
+                        class="more-info-link"
+                        :lang="lang"
+                      >
+                        <v-icon size="small" class="mx-1"
+                          >mdi-help-circle</v-icon
+                        >
+                        {{ $t('trans.printOptions.moreInfo') }}
+                      </a>
+                    </div>
                   </template>
                   <span :lang="lang">{{
                     $t('trans.printOptions.submitButtonTxt')
@@ -344,3 +391,16 @@ export default {
     </v-dialog>
   </span>
 </template>
+
+<style scoped>
+.more-info-link {
+  color: gray;
+  text-decoration: none;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.flex-container {
+  display: flex;
+}
+</style>
