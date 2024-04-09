@@ -21,6 +21,8 @@ export default {
         'https://github.com/bcgov/common-hosted-form-service/wiki/Event-Subscription',
       githubLinkWideFormLayout:
         'https://github.com/bcgov/common-hosted-form-service/wiki/Wide-Form-Layout',
+      cdogsTemplateDocumentation:
+        'https://developer.gov.bc.ca/docs/default/component/chefs-techdocs/Capabilities/Functionalities/CDOGS-Template-Upload/',
     };
   },
   computed: {
@@ -47,6 +49,13 @@ export default {
       ) {
         this.form.enableSubmitterDraft = true;
       }
+    },
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formStore = useFormStore();
+      formStore.setTemplateFile(file);
     },
   },
 };
@@ -102,7 +111,7 @@ export default {
             :lang="lang"
             v-html="$t('trans.formSettings.allowMultiDraft')"
           />
-          <v-tooltip location="bottom" close-delay="2500">
+          <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-icon
                 color="primary"
@@ -155,7 +164,7 @@ export default {
           <span :lang="lang">{{
             $t('trans.formSettings.formSubmissionsSchedule')
           }}</span>
-          <v-tooltip location="bottom" close-delay="2500">
+          <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-icon
                 color="primary"
@@ -196,7 +205,7 @@ export default {
             :lang="lang"
             v-html="$t('trans.formSettings.submitterCanCopyExistingSubmissn')"
           />
-          <v-tooltip location="bottom" close-delay="2500">
+          <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-icon
                 color="primary"
@@ -236,7 +245,7 @@ export default {
             :lang="lang"
             v-html="$t('trans.formSettings.allowEventSubscription')"
           />
-          <v-tooltip location="bottom" close-delay="2500">
+          <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-icon
                 color="primary"
@@ -271,7 +280,7 @@ export default {
             :lang="lang"
             v-html="$t('trans.formSettings.wideFormLayout')"
           />
-          <v-tooltip location="bottom" close-delay="2500">
+          <v-tooltip location="bottom">
             <template #activator="{ props }">
               <v-icon
                 color="primary"
@@ -298,5 +307,80 @@ export default {
         </div>
       </template>
     </v-checkbox>
+    <v-checkbox v-model="form.enableDocumentTemplates">
+      <template #label>
+        <div :class="{ 'mr-2': isRTL }">
+          <span
+            style="max-width: 80%"
+            :lang="lang"
+            v-html="$t('trans.printOptions.uploadCDOGSTemplate')"
+          />
+          <v-tooltip location="bottom">
+            <template #activator="{ props }">
+              <v-icon
+                color="primary"
+                class="ml-3"
+                :class="{ 'mr-2': isRTL }"
+                v-bind="props"
+                icon="mdi:mdi-help-circle-outline"
+              ></v-icon>
+            </template>
+            <span :lang="lang">
+              <a
+                :href="cdogsTemplateDocumentation"
+                class="preview_info_link_field_white"
+                :target="'_blank'"
+                :hreflang="lang"
+              >
+                {{ $t('trans.formSettings.learnMore') }}
+                <v-icon
+                  icon="mdi:mdi-arrow-top-right-bold-box-outline"
+                ></v-icon></a
+            ></span>
+          </v-tooltip>
+        </div>
+      </template>
+    </v-checkbox>
+    <v-window direction="vertical">
+      <v-window-item v-if="form.enableDocumentTemplates && !form.id">
+        <v-file-input
+          :class="[{ label: isRTL }]"
+          :style="isRTL ? { gap: '10px' } : null"
+          counter
+          :clearable="true"
+          :label="$t('trans.printOptions.uploadTemplateFile')"
+          required
+          mandatory
+          show-size
+          :lang="lang"
+          @change="handleFileUpload($event)"
+        />
+      </v-window-item>
+      <v-window-item v-if="form.enableDocumentTemplates && form.id">
+        <v-table>
+          <v-table
+            style="color: gray; border: 1px solid lightgray; border-radius: 8px"
+            class="mb-5 mt-3 mx-10"
+          >
+            <thead>
+              <tr>
+                <th class="text-left">
+                  {{ $t('trans.printOptions.fileName') }}
+                </th>
+                <th class="text-left">
+                  {{ $t('trans.printOptions.uploadDate') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>example.pdf</td>
+                <td>2024-04-08</td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-table>
+      </v-window-item>
+    </v-window>
   </BasePanel>
 </template>

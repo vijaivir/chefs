@@ -70,6 +70,7 @@ const genInitialForm = () => ({
   apiIntegration: null,
   useCase: null,
   wideFormLayout: false,
+  enableDocumentTemplates: false,
 });
 
 export const useFormStore = defineStore('form', {
@@ -105,6 +106,7 @@ export const useFormStore = defineStore('form', {
     userFormPreferences: {},
     version: {},
     userLabels: [],
+    templateFile: null,
   }),
   getters: {
     isFormPublished: (state) =>
@@ -409,6 +411,7 @@ export const useFormStore = defineStore('form', {
           enableSubmitterDraft: this.form.enableSubmitterDraft,
           enableStatusUpdates: this.form.enableStatusUpdates,
           wideFormLayout: this.form.wideFormLayout,
+          enableDocumentTemplates: this.form.enableDocumentTemplates,
           identityProviders: generateIdps({
             idps: this.form.idps,
             userType: this.form.userType,
@@ -451,6 +454,9 @@ export const useFormStore = defineStore('form', {
           }),
         });
       }
+    },
+    async setTemplateFile(file) {
+      this.templateFile = file;
     },
     //
     // Submission

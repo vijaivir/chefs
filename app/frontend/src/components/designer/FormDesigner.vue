@@ -622,6 +622,7 @@ export default {
         enableSubmitterDraft: this.form.enableSubmitterDraft,
         enableCopyExistingSubmission: this.form.enableCopyExistingSubmission,
         wideFormLayout: this.form.wideFormLayout,
+        enableDocumentTemplates: this.form.enableDocumentTemplates,
         enableStatusUpdates: this.form.enableStatusUpdates,
         showSubmissionConfirmation: this.form.showSubmissionConfirmation,
         submissionReceivedEmails: this.form.submissionReceivedEmails,
@@ -632,6 +633,11 @@ export default {
         useCase: this.form.useCase,
         labels: this.form.labels,
       });
+
+      // Post document templates
+      if (this.form.enableDocumentTemplates) {
+        await this.postDocumentTemplates(response.data.id);
+      }
       // update user labels with any new added labels
       if (
         this.form.labels.some((label) => this.userLabels.indexOf(label) === -1)
@@ -681,7 +687,24 @@ export default {
         query: { ...this.$route.query, sv: true, svs: 'Saved' },
       });
     },
+    async postDocumentTemplates(formId) {
+      const templateFile = useFormStore().templateFile;
+      const fileReader = new FileReader();
+      fileReader.readAsText(templateFile);
+      fileReader.onload = async (event) => {
+        const fileContentAsString = event.target.result;
+        const data = {
+          filename: templateFile.name,
+          template: fileContentAsString,
+        };
 
+        await formService.documentTemplateCreate(
+          formId,
+          data,
+          this.user.username
+        );
+      };
+    },
     // ----------------------------------------------------------------------------------/ Patch History
   },
 };

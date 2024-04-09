@@ -333,7 +333,6 @@ export default {
                   :clearable="true"
                   :label="$t('trans.printOptions.uploadTemplateFile')"
                   persistent-hint
-                  prepend-icon="attachment"
                   required
                   mandatory
                   show-size
