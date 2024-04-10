@@ -636,7 +636,7 @@ export default {
 
       // Post document templates
       if (this.form.enableDocumentTemplates) {
-        await this.postDocumentTemplates(response.data.id);
+        await this.postDocumentTemplate(response.data.id);
       }
       // update user labels with any new added labels
       if (
@@ -687,23 +687,34 @@ export default {
         query: { ...this.$route.query, sv: true, svs: 'Saved' },
       });
     },
-    async postDocumentTemplates(formId) {
+    async postDocumentTemplate(formId) {
       const templateFile = useFormStore().templateFile;
-      const fileReader = new FileReader();
-      fileReader.readAsText(templateFile);
-      fileReader.onload = async (event) => {
-        const fileContentAsString = event.target.result;
-        const data = {
-          filename: templateFile.name,
-          template: fileContentAsString,
-        };
 
-        await formService.documentTemplateCreate(
-          formId,
-          data,
-          this.user.username
-        );
+      const fileContentAsBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(templateFile);
+        reader.onload = () => {
+          // Strip the Data URL scheme part (everything up to, and including, the comma)
+          const base64Content = reader.result.split(',')[1];
+          resolve(base64Content);
+        };
+        reader.onerror = (error) => {
+          reject(error);
+        };
+      });
+      const data = {
+        filename: templateFile.name,
+        template: fileContentAsBase64,
       };
+
+      const result = await formService.documentTemplateCreate(
+        formId,
+        data,
+        this.user.username
+      );
+      const documentTemplateId = result.data.id;
+      const formStore = useFormStore();
+      formStore.setDocumentTemplateId(documentTemplateId);
     },
     // ----------------------------------------------------------------------------------/ Patch History
   },

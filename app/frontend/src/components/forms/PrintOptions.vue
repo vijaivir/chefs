@@ -32,10 +32,15 @@ export default {
       timeout: undefined,
       tab: 'tab-1',
       selectedOption: null,
+      defaultTemplate: false,
+      enableDocumentTemplates: false,
+      cdogsTemplateDate: '',
+      cdogsTemplateFilename: '',
+      cdogsTemplateId: '',
     };
   },
   computed: {
-    ...mapState(useFormStore, ['isRTL', 'lang']),
+    ...mapState(useFormStore, ['isRTL', 'lang', 'form']),
     files() {
       return this.templateForm.files;
     },
@@ -164,19 +169,21 @@ export default {
           outputFileName,
           outputFileType
         );
-
+        console.log('before CDOGS call');
         let response = null;
         // Submit Template to CDOGS API
         if (this.submissionId?.length > 0) {
+          console.log('in if statement', this.submissionId, body);
           response = await formService.docGen(this.submissionId, body);
         } else {
+          console.log('in else statement');
           const draftData = {
             template: body,
             submission: this.submission,
           };
           response = await utilsService.draftDocGen(draftData);
         }
-
+        console.log('after CDOGS call');
         // create file to download
         const filename = this.getDispositionFilename(
           response.headers['content-disposition']
@@ -216,6 +223,21 @@ export default {
           fileType: contentFileType,
         },
       };
+    },
+    async fetchCdogsTemplate() {
+      const formStore = useFormStore();
+      const formid = formStore.formid;
+      if (formid) {
+        const result = await formService.readForm(formid);
+        this.enableDocumentTemplates = result.data.enableDocumentTemplates;
+        console.log('enableDocumentTemplates', this.enableDocumentTemplates);
+      }
+      if (formid && this.enableDocumentTemplates) {
+        const response = await formService.documentTemplateList(formid);
+        this.cdogsTemplateId = response.data[0].id;
+        this.cdogsTemplateFilename = response.data[0].filename;
+        this.cdogsTemplateDate = response.data[0].createdAt.split('T')[0];
+      }
     },
   },
 };
@@ -266,12 +288,22 @@ export default {
               <div class="flex-container">
                 <v-btn
                   class="mb-5"
-                  :class="isRTL ? 'ml-5' : 'mr-5'"
+                  :class="isRTL ? 'ml-2' : 'mr-2'"
                   color="primary"
                   @click="printBrowser"
                 >
                   <span :lang="lang">{{
                     $t('trans.printOptions.browserPrint')
+                  }}</span>
+                </v-btn>
+                <v-btn
+                  variant="outlined"
+                  color="textLink"
+                  :class="isRTL ? 'ml-5' : 'mr-5'"
+                  @click="dialog = false"
+                >
+                  <span :lang="lang">{{
+                    $t('trans.formSubmission.cancel')
                   }}</span>
                 </v-btn>
                 <!-- More Info Link -->
@@ -290,11 +322,13 @@ export default {
               <v-radio-group v-model="selectedOption">
                 <!-- Radio 1 -->
                 <v-radio
+                  v-model="defaultTemplate"
                   :label="$t('trans.printOptions.defaultCDOGSTemplate')"
                   value="default"
+                  @click="fetchCdogsTemplate"
                 ></v-radio>
                 <v-table
-                  :disabled="selectedOption !== 'default'"
+                  v-if="selectedOption === 'default'"
                   style="
                     color: gray;
                     border: 1px solid lightgray;
@@ -314,8 +348,8 @@ export default {
                   </thead>
                   <tbody>
                     <tr>
-                      <td>example.pdf</td>
-                      <td>2024-04-08</td>
+                      <td>{{ cdogsTemplateFilename }}</td>
+                      <td>{{ cdogsTemplateDate }}</td>
                     </tr>
                   </tbody>
                 </v-table>
@@ -349,7 +383,6 @@ export default {
                         id="file-input-submit"
                         variant="flat"
                         class="btn-file-input-submit px-4"
-                        :class="isRTL ? 'ml-5' : 'mr-5'"
                         :disabled="!templateForm.files"
                         color="primary"
                         :loading="loading"
@@ -362,6 +395,16 @@ export default {
                         />
                         <span :lang="lang">{{
                           $t('trans.printOptions.templatePrint')
+                        }}</span>
+                      </v-btn>
+                      <v-btn
+                        variant="outlined"
+                        color="textLink"
+                        :class="isRTL ? 'ml-5' : 'mr-5'"
+                        @click="dialog = false"
+                      >
+                        <span :lang="lang">{{
+                          $t('trans.formSubmission.cancel')
                         }}</span>
                       </v-btn>
 

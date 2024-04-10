@@ -595,13 +595,13 @@ export default {
     );
   },
 
-  documentTemplateDelete(documentTemplateId) {
+  documentTemplateDelete(formId, documentTemplateId) {
     return appAxios().delete(
       `${ApiRoutes.FORMS}/${formId}/documentTemplates/${documentTemplateId}`
     );
   },
 
-  documentTemplateRead(documentTemplateId) {
+  documentTemplateRead(formId, documentTemplateId) {
     return appAxios().get(
       `${ApiRoutes.FORMS}/${formId}/documentTemplates/${documentTemplateId}`
     );

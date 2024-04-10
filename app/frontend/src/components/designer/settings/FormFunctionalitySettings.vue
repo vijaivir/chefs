@@ -4,6 +4,7 @@ import BasePanel from '~/components/base/BasePanel.vue';
 import { useAuthStore } from '~/store/auth';
 import { useFormStore } from '~/store/form';
 import { IdentityMode, IdentityProviders } from '~/utils/constants';
+import { formService } from '~/services';
 
 export default {
   components: {
@@ -23,6 +24,11 @@ export default {
         'https://github.com/bcgov/common-hosted-form-service/wiki/Wide-Form-Layout',
       cdogsTemplateDocumentation:
         'https://developer.gov.bc.ca/docs/default/component/chefs-techdocs/Capabilities/Functionalities/CDOGS-Template-Upload/',
+      showDropbox: false,
+      showTemplateFile: false,
+      cdogsTemplateId: '',
+      cdogsTemplateFilename: '',
+      cdogsTemplateDate: '',
     };
   },
   computed: {
@@ -35,6 +41,12 @@ export default {
     idirUser() {
       return this.identityProvider === IdentityProviders.IDIR;
     },
+  },
+  mounted() {
+    if (this.form.enableDocumentTemplates && this.form.id) {
+      this.fetchCdogsTemplate();
+      this.showTemplateFile = true;
+    }
   },
   methods: {
     enableSubmitterDraftChanged() {
@@ -56,6 +68,28 @@ export default {
 
       const formStore = useFormStore();
       formStore.setTemplateFile(file);
+    },
+    enableDropbox() {
+      this.showDropbox = !this.showDropbox;
+    },
+    async fetchCdogsTemplate() {
+      if (this.form.id && this.form.enableDocumentTemplates) {
+        const response = await formService.documentTemplateList(this.form.id);
+        this.cdogsTemplateId = response.data[0].id;
+        this.cdogsTemplateFilename = response.data[0].filename;
+        this.cdogsTemplateDate = response.data[0].createdAt.split('T')[0];
+      }
+    },
+    async handleDelete() {
+      await formService.documentTemplateDelete(
+        this.form.id,
+        this.cdogsTemplateId
+      );
+      this.cdogsTemplateId = '';
+      this.cdogsTemplateFilename = '';
+      this.cdogsTemplateDate = '';
+      this.showDropbox = true;
+      this.showTemplateFile = false;
     },
   },
 };
@@ -307,7 +341,7 @@ export default {
         </div>
       </template>
     </v-checkbox>
-    <v-checkbox v-model="form.enableDocumentTemplates">
+    <v-checkbox v-model="form.enableDocumentTemplates" @click="enableDropbox">
       <template #label>
         <div :class="{ 'mr-2': isRTL }">
           <span
@@ -341,8 +375,8 @@ export default {
         </div>
       </template>
     </v-checkbox>
-    <v-window direction="vertical">
-      <v-window-item v-if="form.enableDocumentTemplates && !form.id">
+    <v-window v-if="form.enableDocumentTemplates" direction="vertical">
+      <v-window-item v-if="showDropbox">
         <v-file-input
           :class="[{ label: isRTL }]"
           :style="isRTL ? { gap: '10px' } : null"
@@ -356,31 +390,52 @@ export default {
           @change="handleFileUpload($event)"
         />
       </v-window-item>
-      <v-window-item v-if="form.enableDocumentTemplates && form.id">
-        <v-table>
-          <v-table
-            style="color: gray; border: 1px solid lightgray; border-radius: 8px"
-            class="mb-5 mt-3 mx-10"
-          >
-            <thead>
-              <tr>
-                <th class="text-left">
-                  {{ $t('trans.printOptions.fileName') }}
-                </th>
-                <th class="text-left">
-                  {{ $t('trans.printOptions.uploadDate') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>example.pdf</td>
-                <td>2024-04-08</td>
-              </tr>
-            </tbody>
-          </v-table>
+      <v-window-item>
+        <v-table
+          style="color: gray; border: 1px solid lightgray; border-radius: 8px"
+          class="mb-5 mt-3 mx-10"
+        >
+          <thead>
+            <tr>
+              <th class="text-left">
+                {{ $t('trans.printOptions.fileName') }}
+              </th>
+              <th class="text-left">
+                {{ $t('trans.printOptions.uploadDate') }}
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ cdogsTemplateFilename }}</td>
+              <td>{{ cdogsTemplateDate }}</td>
+              <td>
+                <v-tooltip location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon
+                      color="red"
+                      v-bind="props"
+                      v-on="on"
+                      @click="handleDelete"
+                    >
+                      mdi-delete-outline
+                    </v-icon>
+                  </template>
+                  <span>Delete</span>
+                </v-tooltip>
+              </td>
+            </tr>
+          </tbody>
         </v-table>
       </v-window-item>
     </v-window>
   </BasePanel>
 </template>
+
+<style scoped>
+.test {
+  background-color: red;
+  margin-bottom: 0;
+}
+</style>
