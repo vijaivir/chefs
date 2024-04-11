@@ -25,6 +25,7 @@ export default {
       cdogsTemplateDocumentation:
         'https://developer.gov.bc.ca/docs/default/component/chefs-techdocs/Capabilities/Functionalities/CDOGS-Template-Upload/',
       showDropbox: false,
+      showTable: false,
       showTemplateFile: false,
       cdogsTemplateId: '',
       cdogsTemplateFilename: '',
@@ -46,6 +47,7 @@ export default {
     if (this.form.enableDocumentTemplates && this.form.id) {
       this.fetchCdogsTemplate();
       this.showTemplateFile = true;
+      this.showTable = true;
     }
   },
   methods: {
@@ -65,7 +67,6 @@ export default {
     handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const formStore = useFormStore();
       formStore.setTemplateFile(file);
     },
@@ -90,6 +91,7 @@ export default {
       this.cdogsTemplateDate = '';
       this.showDropbox = true;
       this.showTemplateFile = false;
+      useFormStore().setEnableDocumentTemplates(false);
     },
   },
 };
@@ -390,7 +392,7 @@ export default {
           @change="handleFileUpload($event)"
         />
       </v-window-item>
-      <v-window-item>
+      <v-window-item v-if="showTable">
         <v-table
           style="color: gray; border: 1px solid lightgray; border-radius: 8px"
           class="mb-5 mt-3 mx-10"
@@ -432,10 +434,3 @@ export default {
     </v-window>
   </BasePanel>
 </template>
-
-<style scoped>
-.test {
-  background-color: red;
-  margin-bottom: 0;
-}
-</style>

@@ -707,11 +707,8 @@ export default {
         template: fileContentAsBase64,
       };
 
-      const result = await formService.documentTemplateCreate(
-        formId,
-        data,
-        this.user.username
-      );
+      const result = await formService.documentTemplateCreate(formId, data);
+      console.log('from designer', result);
       const documentTemplateId = result.data.id;
       const formStore = useFormStore();
       formStore.setDocumentTemplateId(documentTemplateId);

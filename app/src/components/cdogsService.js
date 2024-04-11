@@ -40,16 +40,20 @@ class CdogsService {
   }
 
   async templateUploadAndRender(body) {
+    console.log('in templateUploadAndRender\n', body)
     try {
       const url = `${this.apiV2}/template/render`;
       log.debug(`POST to ${url}`, { function: 'templateUploadAndRender' });
 
+      console.log('body in templateUploadAndRender\n', body);
+      console.log('url in templateUploadAndRender\n', url);
       const { data, headers, status } = await this.axios.post(url, body, {
         responseType: 'arraybuffer', // Needed for binaries unless you want pain
       });
-
+      console.log('after cdogs axios call *********\n')
       return { data, headers, status };
     } catch (e) {
+      console.log('error in templateUploadAndRender\n');
       errorToProblem(SERVICE, e);
     }
   }

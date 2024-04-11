@@ -467,6 +467,9 @@ export const useFormStore = defineStore('form', {
     async setFormId(formId) {
       this.formId = formId;
     },
+    async setEnableDocumentTemplates(boolean) {
+      this.enableDocumentTemplates = boolean;
+    },
     //
     // Submission
     //

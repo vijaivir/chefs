@@ -6,6 +6,7 @@ const { currentUser } = require('../auth/middleware/userAccess');
 routes.use(currentUser);
 
 routes.post('/template/render', async (req, res, next) => {
+  console.log('in post*******************\n', req.body);
   await controller.draftTemplateUploadAndRender(req, res, next);
 });
 

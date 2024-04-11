@@ -120,7 +120,9 @@ module.exports = {
     }
   },
   templateUploadAndRender: async (req, res, next) => {
+    console.log('1')
     try {
+      console.log('templateUploadAndRender', req.params.formSubmissionId);
       const submission = await service.read(req.params.formSubmissionId);
       const templateBody = {
         ...req.body,
@@ -132,6 +134,7 @@ module.exports = {
           },
         },
       };
+      console.log('cdogs call: \n', templateBody)
       const { data, headers, status } = await cdogsService.templateUploadAndRender(templateBody);
       const contentDisposition = headers['content-disposition'];
 
@@ -148,6 +151,7 @@ module.exports = {
   },
   draftTemplateUploadAndRender: async (req, res, next) => {
     try {
+      console.log('in controller try\n', req.body);
       const templateBody = { ...req.body.template, data: req.body.submission.data };
       const { data, headers, status } = await cdogsService.templateUploadAndRender(templateBody);
       const contentDisposition = headers['content-disposition'];

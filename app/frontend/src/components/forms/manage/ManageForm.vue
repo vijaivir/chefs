@@ -9,6 +9,7 @@ import { useFormStore } from '~/store/form';
 import { useNotificationStore } from '~/store/notification';
 import { FormPermissions, NotificationTypes } from '~/utils/constants';
 import FormProfile from '~/components/designer/FormProfile.vue';
+import formService from '~/services/formService';
 
 export default {
   components: {
@@ -108,6 +109,7 @@ export default {
         const { valid } = await this.$refs.settingsForm.validate();
 
         if (valid) {
+          await this.postDocumentTemplate(this.form.id);
           await this.updateForm();
           this.formSettingsDisabled = true;
           this.addNotification({
@@ -125,6 +127,32 @@ export default {
     },
     onSubscription(value) {
       this.subscriptionsPanel = value;
+    },
+    async postDocumentTemplate(formId) {
+      const templateFile = useFormStore().templateFile;
+
+      const fileContentAsBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(templateFile);
+        reader.onload = () => {
+          // Strip the Data URL scheme part (everything up to, and including, the comma)
+          const base64Content = reader.result.split(',')[1];
+          resolve(base64Content);
+        };
+        reader.onerror = (error) => {
+          reject(error);
+        };
+      });
+      const data = {
+        filename: templateFile.name,
+        template: fileContentAsBase64,
+      };
+
+      const result = await formService.documentTemplateCreate(formId, data);
+      const documentTemplateId = result.data.id;
+      const formStore = useFormStore();
+      formStore.setDocumentTemplateId(documentTemplateId);
+      formStore.setEnableDocumentTemplate(true);
     },
   },
 };
