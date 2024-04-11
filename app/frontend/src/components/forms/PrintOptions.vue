@@ -34,9 +34,12 @@ export default {
       selectedOption: null,
       defaultTemplate: false,
       enableDocumentTemplates: false,
-      cdogsTemplateDate: '',
-      cdogsTemplateFilename: '',
-      cdogsTemplateId: '',
+      defaultTemplateContent: null,
+      defaultTemplateDate: '',
+      defaultTemplateFilename: '',
+      defaultTemplateExtension: '',
+      defaultReportname: '',
+      formId: '',
     };
   },
   computed: {
@@ -159,9 +162,15 @@ export default {
         let contentFileType = '';
         let outputFileName = '';
 
-        content = await this.fileToBase64(this.templateForm.files[0]);
-        contentFileType = this.templateForm.contentFileType;
-        outputFileName = this.templateForm.outputFileName;
+        if (this.selectedOption === 'default') {
+          content = this.defaultTemplateContent;
+          contentFileType = this.defaultTemplateExtension;
+          outputFileName = this.defaultReportname;
+        } else if (this.selectedOption === 'upload') {
+          content = await this.fileToBase64(this.templateForm.files[0]);
+          contentFileType = this.templateForm.contentFileType;
+          outputFileName = this.templateForm.outputFileName;
+        }
 
         const body = this.createBody(
           content,
@@ -169,21 +178,17 @@ export default {
           outputFileName,
           outputFileType
         );
-        console.log('before CDOGS call');
         let response = null;
         // Submit Template to CDOGS API
         if (this.submissionId?.length > 0) {
-          console.log('in if statement', this.submissionId, body);
           response = await formService.docGen(this.submissionId, body);
         } else {
-          console.log('in else statement');
           const draftData = {
             template: body,
             submission: this.submission,
           };
           response = await utilsService.draftDocGen(draftData);
         }
-        console.log('after CDOGS call');
         // create file to download
         const filename = this.getDispositionFilename(
           response.headers['content-disposition']
@@ -224,19 +229,30 @@ export default {
         },
       };
     },
-    async fetchCdogsTemplate() {
+    async fetchDefaultTemplate() {
       const formStore = useFormStore();
-      const formid = formStore.formid;
-      if (formid) {
-        const result = await formService.readForm(formid);
-        this.enableDocumentTemplates = result.data.enableDocumentTemplates;
-        console.log('enableDocumentTemplates', this.enableDocumentTemplates);
+      this.formId = formStore.formId;
+
+      // Calling the API to check whether the form has any uploaded document templates
+      const result = await formService.readForm(this.formId);
+      this.enableDocumentTemplates = result.data.enableDocumentTemplates;
+      if (this.enableDocumentTemplates) {
+        this.defaultTemplate = true;
       }
-      if (formid && this.enableDocumentTemplates) {
-        const response = await formService.documentTemplateList(formid);
-        this.cdogsTemplateId = response.data[0].id;
-        this.cdogsTemplateFilename = response.data[0].filename;
-        this.cdogsTemplateDate = response.data[0].createdAt.split('T')[0];
+      if (this.formId && this.enableDocumentTemplates) {
+        const response = await formService.documentTemplateList(this.formId);
+        const temp = response.data[0].template.data;
+        const base64String = temp
+          .map((code) => String.fromCharCode(code))
+          .join('');
+        this.defaultTemplateContent = base64String;
+        this.defaultTemplateFilename = response.data[0].filename;
+        const { name, extension } = this.splitFileName(
+          response.data[0].filename
+        );
+        this.defaultTemplateExtension = extension;
+        this.defaultReportname = name;
+        this.defaultTemplateDate = response.data[0].createdAt.split('T')[0];
       }
     },
   },
@@ -274,7 +290,7 @@ export default {
             <v-tab value="tab-1">{{
               $t('trans.printOptions.browserPrint')
             }}</v-tab>
-            <v-tab value="tab-2">{{
+            <v-tab value="tab-2" @click="fetchDefaultTemplate">{{
               $t('trans.printOptions.templatePrint')
             }}</v-tab>
           </v-tabs>
@@ -322,10 +338,9 @@ export default {
               <v-radio-group v-model="selectedOption">
                 <!-- Radio 1 -->
                 <v-radio
-                  v-model="defaultTemplate"
+                  v-if="defaultTemplate"
                   :label="$t('trans.printOptions.defaultCDOGSTemplate')"
                   value="default"
-                  @click="fetchCdogsTemplate"
                 ></v-radio>
                 <v-table
                   v-if="selectedOption === 'default'"
@@ -348,8 +363,8 @@ export default {
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{{ cdogsTemplateFilename }}</td>
-                      <td>{{ cdogsTemplateDate }}</td>
+                      <td>{{ defaultTemplateFilename }}</td>
+                      <td>{{ defaultTemplateDate }}</td>
                     </tr>
                   </tbody>
                 </v-table>

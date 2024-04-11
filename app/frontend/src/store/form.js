@@ -109,7 +109,7 @@ export const useFormStore = defineStore('form', {
     templateFile: null,
     documentTemplateId: null,
     enableDocumentTemplates: false,
-    formid: null,
+    formId: '',
   }),
   getters: {
     isFormPublished: (state) =>
@@ -465,7 +465,7 @@ export const useFormStore = defineStore('form', {
       this.documentTemplateId = documentTemplateId;
     },
     async setFormId(formId) {
-      this.formid = formId;
+      this.formId = formId;
     },
     //
     // Submission

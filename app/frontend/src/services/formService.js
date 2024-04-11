@@ -494,6 +494,7 @@ export default {
    * @returns {Promise} An axios response
    */
   docGen(submissionId, body) {
+    console.log('in formservice docGen\n', submissionId, body);
     return appAxios().post(
       `${ApiRoutes.SUBMISSION}/${submissionId}/template/render`,
       body,
